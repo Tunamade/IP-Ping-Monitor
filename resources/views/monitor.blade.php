@@ -294,7 +294,9 @@
         $('#queuePingBtn').on('click', queuePing);
         $('#goHomeBtn').on('click', function() {
             window.location.href = '{{ url('/') }}';
+
         });
+
         $('#toggleFailedIpsBtn').on('click', function() {
             $('#failedIpsContainer').toggle();
         });

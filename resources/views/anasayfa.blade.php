@@ -22,7 +22,7 @@
     <!-- Başlık -->
     <div class="text-center mb-5">
         <h1 class="display-5 fw-bold text-dark">Ana Sayfa</h1>
-
+    </div>
 
     <!-- Kart -->
     <div class="card shadow ">
@@ -31,7 +31,8 @@
         </div>
         <div class="card-body">
             <p class="mb-4">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris lobortis arcu felis, at tristique purus hendrerit sed. Proin non augue at lacus posuere porttitor. Mauris mattis tellus nec ante sodales, at malesuada dui auctor. Cras sed risus nec erat rhoncus efficitur. Sed ac lectus eros. Nam facilisis, nisi nec suscipit lobortis, nisl nulla pulvinar erat, semper iaculis nisl nisl eu turpis. Ut pellentesque mi nunc, ut consectetur ex ullamcorper sit amet. Aenean sed convallis orci. Ut ac tincidunt massa. Morbi non tempus mauris. Morbi luctus blandit nisl, ut euismod felis. Aliquam non lacus tellus. Curabitur mi magna, viverra eu feugiat sodales, laoreet quis mi. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum tristique tincidunt eros, at tempus dolor tempus sed.            </p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris lobortis arcu felis, at tristique purus hendrerit sed. Proin non augue at lacus posuere porttitor. Mauris mattis tellus nec ante sodales, at malesuada dui auctor. Cras sed risus nec erat rhoncus efficitur. Sed ac lectus eros. Nam facilisis, nisi nec suscipit lobortis, nisl nulla pulvinar erat, semper iaculis nisl nisl eu turpis. Ut pellentesque mi nunc, ut consectetur ex ullamcorper sit amet. Aenean sed convallis orci. Ut ac tincidunt massa. Morbi non tempus mauris. Morbi luctus blandit nisl, ut euismod felis. Aliquam non lacus tellus. Curabitur mi magna, viverra eu feugiat sodales, laoreet quis mi. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum tristique tincidunt eros, at tempus dolor tempus sed.
+            </p>
 
             <div class="d-flex flex-wrap gap-1">
                 <button id="goClientPingPage" class="btn btn-dark">
@@ -40,10 +41,12 @@
                 <button id="goMonitorPage" class="btn btn-dark">
                     <i class="bi bi-activity"></i> Monitor Sayfasına Git
                 </button>
+                <button id="goMonitorTablePage" class="btn btn-dark">
+                    <i class="bi bi-table"></i> IP Tablosu Sayfasına Git
+                </button>
             </div>
         </div>
     </div>
-</div>
 </div>
 
 <!-- Bootstrap ve jQuery -->
@@ -58,6 +61,9 @@
         });
         $('#goMonitorPage').on('click', function() {
             window.location.href = '{{ url("/monitor") }}';
+        });
+        $('#goMonitorTablePage').on('click', function() {
+            window.location.href = '{{ url("/monitor/table") }}';
         });
     });
 </script>

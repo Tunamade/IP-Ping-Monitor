@@ -12,6 +12,7 @@
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
         "nesbot/carbon": "^3.10",
+        "spatie/laravel-cronless-schedule": "^1.2",
         "spatie/laravel-tail": "^4.5"
     },
     "require-dev": {

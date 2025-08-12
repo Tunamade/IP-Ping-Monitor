@@ -11,6 +11,14 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\FailedPingNotification;
 use App\Jobs\TestQueueJob;
 
+Route::middleware('auth')->group(function () {
+    Route::get('/monitor/table', function () {
+        return view('monitor_table');
+    });
+});
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Genel route’lar (Diğer kısımlar değişmedi)
