@@ -3,87 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <title>IP İzleme Tablosu</title>
-
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <!-- DataTables Bootstrap 5 CSS -->
     <link href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
-
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
 
     <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
-        /* Light mode */
-        body.light-mode {
-            background-color: #f8f9fa;
-            color: #212529;
-        }
-        /* Dark mode */
-        body.dark-mode {
-            background-color: #121212;
-            color: #e4e4e4;
-        }
-        /* Card renkleri */
-        body.light-mode .card {
-            background-color: white;
-            color: inherit;
-        }
-        body.dark-mode .card {
-            background-color: #1e1e1e;
-            color: #e4e4e4;
-        }
-        /* DataTables başlıkları */
-        body.dark-mode table.dataTable thead {
-            background-color: #343a40 !important;
-            color: white !important;
-        }
-        body.light-mode table.dataTable thead {
-            background-color: #212529 !important;
-            color: white !important;
-        }
-        /* DataTables hücreleri */
-        body.dark-mode table.dataTable {
-            color: #e4e4e4 !important;
-        }
-        /* DataTables pagination ve diğer elementler */
+        html, body { height: 100%; margin: 0; }
+        body.light-mode { background-color: #f8f9fa; color: #212529; }
+        body.dark-mode { background-color: #121212; color: #e4e4e4; }
+
+        body.light-mode .card { background-color: white; color: inherit; }
+        body.dark-mode .card { background-color: #1e1e1e; color: #e4e4e4; }
+
+        body.dark-mode table.dataTable thead { background-color: #343a40 !important; color: white !important; }
+        body.light-mode table.dataTable thead { background-color: #212529 !important; color: white !important; }
+
+        body.dark-mode table.dataTable tbody tr { background-color: transparent !important; } /* Dark mode satır arka planı kaldırıldı */
+        body.dark-mode table.dataTable { color: #e4e4e4 !important; }
         body.dark-mode .dataTables_info,
         body.dark-mode .dataTables_paginate,
         body.dark-mode .dataTables_length,
-        body.dark-mode .dataTables_filter label {
-            color: #e4e4e4 !important;
-        }
+        body.dark-mode .dataTables_filter label { color: #e4e4e4 !important; }
+
         .mode-switch {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 9999;
+            position: absolute; top: 15px; right: 20px;
+            display: flex; align-items: center; gap: 10px; z-index: 9999;
+            transition: right 0.2s ease;
         }
-        .mode-switch button {
-            min-width: 120px;
+        .mode-switch.fullscreen { right: 230px; }
+        .mode-switch button { min-width: 120px; }
+
+        #tableContainer.fullscreen {
+            position: fixed; top:0; left:0; right:0; bottom:0;
+            width: 100%; height: 100%; margin: 0; border-radius: 0; z-index: 9998;
+            overflow: hidden;
         }
+        #tableContainer.fullscreen .card-body { padding:0; height:100%; overflow:hidden; }
+        #tableContainer.fullscreen table.dataTable { height: 100% !important; }
+        #tableContainer.fullscreen .dataTables_scrollBody { height: 100% !important; }
+
+        /* Flash animasyonları */
+        @keyframes flashGreen {
+            0% { background-color: #d4edda; }
+            50% { background-color: #d4edda; opacity: 0.7; }
+            100% { background-color: transparent; }
+        }
+        @keyframes flashRed {
+            0% { background-color: #f8d7da; }
+            50% { background-color: #f8d7da; opacity: 0.7; }
+            100% { background-color: transparent; }
+        }
+        .flash-green { animation: flashGreen 2s ease-in-out forwards; background-color: #d4edda !important; }
+        .flash-red { animation: flashRed 2s ease-in-out forwards; background-color: #f8d7da !important; }
     </style>
 </head>
 <body class="light-mode">
-
 <div class="container-fluid p-0 h-100">
-    <!-- Dark/Light Mode Switch, Ana Sayfaya Dön ve Tam Ekran Butonu -->
     <div class="mode-switch">
         <button id="fullscreenBtn" class="btn btn-primary btn-sm">Tam Ekran</button>
         <div class="form-check form-switch">
@@ -93,26 +77,23 @@
         <button id="goHomeBtn" class="btn btn-secondary btn-sm">Ana Sayfaya Dön</button>
     </div>
 
-    <!-- Başlık -->
     <div class="text-center py-3">
         <h1 class="fw-bold">IP İzleme Tablosu</h1>
     </div>
 
-    <!-- Tablo Container -->
     <div id="tableContainer" class="card border-0 shadow-sm mx-3">
         <div class="card-body p-3">
             <table id="ipTable" class="table table-striped table-hover w-100">
                 <thead class="table-dark">
                 <tr>
                     <th>IP Adresi</th>
+                    <th>Name</th>
                     <th>Durum</th>
                     <th>Gecikme (ms)</th>
                     <th>Güncelleme Tarihi</th>
                 </tr>
                 </thead>
-                <tbody>
-                <!-- Veri Ajax ile yüklenecek -->
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
     </div>
@@ -121,94 +102,102 @@
 <script>
     $(document).ready(function() {
         let table = $('#ipTable').DataTable({
-            ajax: {
-                url: '/monitor/ips',
-                dataSrc: ''
-            },
+            ajax: { url: '/monitor/ips', dataSrc: '' },
             columns: [
                 { data: 'ip' },
-                {
-                    data: 'status',
-                    render: function(data) {
-                        if(data === 'success') return '<span class="badge bg-success">Başarılı</span>';
-                        if(data === 'fail') return '<span class="badge bg-danger">Başarısız</span>';
-                        return '<span class="badge bg-secondary">Bilinmiyor</span>';
-                    }
-                },
-                {
-                    data: 'latency',
-                    render: function(data) {
-                        return data !== null ? data.toFixed(2) : '-';
-                    }
-                },
-                {
-                    data: 'updated_at',
-                    render: function(data) {
-                        if (!data) return '-';
-                        let date = new Date(data);
-                        return date.toLocaleString('tr-TR');
-                    }
-                }
+                { data: 'name' },
+                { data: 'status', render: d=>d==='success'?'<span class="badge bg-success">Başarılı</span>':d==='fail'?'<span class="badge bg-danger">Başarısız</span>':'<span class="badge bg-secondary">Bilinmiyor</span>' },
+                { data: 'latency', render: d=>d!==null?d.toFixed(2):'-' },
+                { data: 'updated_at', render: d=>d?new Date(d).toLocaleString('tr-TR'):'-' }
             ],
-            language: {
-                url: 'https://cdn.datatables.net/plug-ins/1.13.5/i18n/tr.json'
-            },
-            order: [[0, 'asc']],
-            pageLength: 15
-        });
-
-        // Her 5 saniyede tabloyu otomatik yenile
-        setInterval(function () {
-            table.ajax.reload(null, false);
-        }, 5000);
-
-        // Dark/Light Mode Switch
-        $('#modeToggle').on('change', function() {
-            if($(this).is(':checked')) {
-                $('body').removeClass('light-mode').addClass('dark-mode');
-                $(this).next('label').text('☀️');
-            } else {
-                $('body').removeClass('dark-mode').addClass('light-mode');
-                $(this).next('label').text('🌙');
-            }
-        });
-
-        // Ana Sayfaya Dön butonu tıklaması
-        $('#goHomeBtn').on('click', function() {
-            window.location.href = '{{ url('/') }}';
-        });
-
-        // Tam Ekran butonu tıklaması
-        $('#fullscreenBtn').on('click', function() {
-            let elem = document.getElementById('tableContainer');
-            if (!document.fullscreenElement) {
-                if (elem.requestFullscreen) {
-                    elem.requestFullscreen();
-                } else if (elem.mozRequestFullScreen) { /* Firefox */
-                    elem.mozRequestFullScreen();
-                } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-                    elem.webkitRequestFullscreen();
-                } else if (elem.msRequestFullscreen) { /* IE/Edge */
-                    elem.msRequestFullscreen();
+            language: { url: 'https://cdn.datatables.net/plug-ins/1.13.5/i18n/tr.json' },
+            order: [[2,'desc']],
+            pageLength: 15,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Tümü"]],
+            scrollY: "calc(100vh - 150px)",
+            scrollCollapse: true,
+            paging: true,
+            drawCallback: function(settings) {
+                if($('#tableContainer').hasClass('fullscreen')) {
+                    let containerHeight = $('#tableContainer').height() - $('#ipTable thead').outerHeight();
+                    let rowCount = table.rows({page:'current'}).nodes().length;
+                    let rowHeight = containerHeight / (rowCount || 1);
+                    $('#ipTable tbody tr').css('height', rowHeight + 'px');
+                } else {
+                    $('#ipTable tbody tr').css('height', '');
                 }
-                $(this).text('Ekranı Kapat');
+
+                // Flash animasyonu kısmı
+                $('#ipTable tbody tr').each(function() {
+                    let row = $(this);
+                    let statusCell = row.find('td:eq(2)');
+                    row.find('td').each(function() {
+                        let cell = $(this);
+                        if(statusCell.find('.badge.bg-danger').length) {
+                            cell.addClass('flash-red');
+                            setTimeout(() => {
+                                cell.removeClass('flash-red');
+                                cell.css('background-color', '');
+                            }, 2000); // animasyon süresi ile aynı
+                        } else {
+                            cell.addClass('flash-green');
+                            setTimeout(() => {
+                                cell.removeClass('flash-green');
+                                cell.css('background-color', '');
+                            }, 2000);
+                        }
+                    });
+                });
+
+            }
+        });
+
+        setInterval(() => {
+            table.ajax.reload(function() {
+                table.order([2,'desc']).draw(false);
+            }, false);
+        }, 10000);
+
+        $('#modeToggle').on('change', function(){
+            $('body').toggleClass('dark-mode light-mode');
+            $(this).next('label').text($(this).is(':checked')?'☀️':'🌙');
+        });
+
+        $('#goHomeBtn').click(()=>window.location.href='{{ url("/") }}');
+
+        $('#fullscreenBtn').on('click', function(){
+            let container = $('#tableContainer');
+            container.toggleClass('fullscreen');
+            table.draw();
+
+            if(container.hasClass('fullscreen')) {
+                $('#goHomeBtn').hide();
+                $('.mode-switch').addClass('fullscreen');
+                this.textContent = 'Ekranı Kapat';
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
+                $('#goHomeBtn').show();
+                $('.mode-switch').removeClass('fullscreen');
+                this.textContent = 'Tam Ekran';
+            }
+        });
+
+        $(document).on('keydown', function(e){
+            if(e.key==="Escape"){
+                let container = $('#tableContainer');
+                if(container.hasClass('fullscreen')){
+                    container.removeClass('fullscreen');
+                    $('#fullscreenBtn').text('Tam Ekran');
+                    $('#goHomeBtn').show();
+                    $('.mode-switch').removeClass('fullscreen');
+                    table.draw();
                 }
-                $(this).text('Tam Ekran');
             }
         });
 
-        // Fullscreen çıkış yapıldığında buton metnini resetle
-        $(document).on('fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange', function() {
-            if (!document.fullscreenElement) {
-                $('#fullscreenBtn').text('Tam Ekran');
-            }
+        $(window).on('resize', function(){
+            if($('#tableContainer').hasClass('fullscreen')) table.draw();
         });
-
     });
 </script>
-
 </body>
 </html>

@@ -53,6 +53,7 @@ class MonitorController extends Controller
             return [
                 'id' => $ip->id,
                 'ip' => $ip->ip,
+                'name' => $ip->name,  // burada name ekle
                 'status' => $ip->status ?? 'N/A',
                 'latency' => $ip->latency,
                 'created_at' => $ip->created_at,
@@ -87,9 +88,13 @@ class MonitorController extends Controller
                     }
                 }
             ],
+            'name' => ['nullable', 'string', 'max:255'], // name alanı eklendi
         ]);
 
-        $ip = MonitorIp::create(['ip' => $request->ip]);
+        $ip = MonitorIp::create([
+            'ip' => $request->ip,
+            'name' => $request->name ?? null,
+        ]);
 
         return response()->json($ip, 201);
     }

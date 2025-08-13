@@ -8,8 +8,6 @@ class MonitorIp extends Model
 {
     protected $table = 'monitor_ips';
 
-    protected $fillable = [
-        'ip', 'status', 'latency', 'notified_at'
-    ];
+    protected $fillable = ['ip', 'name', 'latency', 'status', 'notified_at'];
 
 }

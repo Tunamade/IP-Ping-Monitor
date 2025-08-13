@@ -26,7 +26,8 @@
         <div class="card-body">
             <div class="mb-3 d-flex gap-2 flex-wrap align-items-center justify-content-between">
                 <div class="d-flex gap-2 align-items-center flex-wrap">
-                    <input type="text" id="newIpInput" class="form-control" placeholder="Yeni IP girin" style="max-width: 250px;">
+                    <input type="text" id="newIpInput" class="form-control" placeholder="IP adresi girin" style="max-width: 250px;">
+                    <input type="text" id="newNameInput" class="form-control" placeholder="IP ismi girin" style="max-width: 250px;">
                     <button id="addIpBtn" class="btn btn-success">Ekle</button>
                     <button id="startMonitorBtn" class="btn btn-warning" style="white-space: nowrap;">Sürekli Ping Gönder</button>
                     <button id="queuePingBtn" class="btn btn-primary" style="white-space: nowrap;">Ping Queue</button>
@@ -46,6 +47,7 @@
                     <thead class="table-dark">
                     <tr>
                         <th>IP</th>
+                        <th>İsim</th>
                         <th>Durum</th>
                         <th>Gecikme (ms)</th>
                         <th>Sil</th>
@@ -69,7 +71,7 @@
                 url: 'https://cdn.datatables.net/plug-ins/1.13.5/i18n/tr.json'
             },
             columnDefs: [
-                { orderable: false, targets: 3 }
+                { orderable: false, targets: 4 }
             ],
             order: [[0, 'asc']],
             pageLength: 10,
@@ -93,6 +95,7 @@
 
             monitorTable.row.add([
                 ip.ip,
+                ip.name ?? '',
                 statusBadge,
                 latencyText,
                 deleteBtn
@@ -123,7 +126,7 @@
                 cursor: 'default',
                 userSelect: 'none',
                 fontSize: '16px',
-                left: table.offset().left + (table.outerWidth() / 2) - 100, // ortaya daha yakın (genişlik yarısı kadar 100px çıkarıyoruz)
+                left: table.offset().left + (table.outerWidth() / 2) - 100,
                 top: table.offset().top - 50,
                 opacity: 0
             })
@@ -133,8 +136,6 @@
             $(this).remove();
         });
     }
-
-
 
     function loadIPs() {
         $.getJSON('/monitor/ips', function(data) {
@@ -185,7 +186,6 @@
         });
     }
 
-
     function startMonitoring() {
         if (isMonitoring) {
             isMonitoring = false;
@@ -235,28 +235,34 @@
         }, 3000);
     }
 
-
-
     $(document).ready(function() {
         initDataTable();
         loadIPs();
 
         $('#addIpBtn').on('click', function() {
             const ip = $('#newIpInput').val().trim();
+            const name = $('#newNameInput').val().trim();
+
             if (!ip) {
                 alert('IP adresi boş olamaz.');
+                return;
+            }
+
+            if (!name) {
+                alert('İsim boş olamaz.');
                 return;
             }
 
             $.ajax({
                 url: '/monitor/ips',
                 method: 'POST',
-                data: { ip },
+                data: { ip, name },
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function() {
                     $('#newIpInput').val('');
+                    $('#newNameInput').val('');
                     loadIPs();
                 },
                 error: function(xhr) {
@@ -265,7 +271,7 @@
             });
         });
 
-        $('#newIpInput').on('keypress', function(e) {
+        $('#newIpInput, #newNameInput').on('keypress', function(e) {
             if (e.which === 13) {
                 $('#addIpBtn').click();
             }
@@ -294,7 +300,6 @@
         $('#queuePingBtn').on('click', queuePing);
         $('#goHomeBtn').on('click', function() {
             window.location.href = '{{ url('/') }}';
-
         });
 
         $('#toggleFailedIpsBtn').on('click', function() {
