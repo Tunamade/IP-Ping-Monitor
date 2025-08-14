@@ -23,7 +23,7 @@ class PingIpsCommand extends Command
     {
         // Sistem komutu için sistem kullanıcısı oluştur veya belirle
         // Eğer oturum açmış kullanıcı yoksa, örnek olarak x id'li kullanıcı alabiliriz
-        $user = \App\Models\User::find(3);
+        $user = \App\Models\User::find(3);  //Mail gönderilecek email için idsine göre değiştir.
 
         if (!$user || !$user->email) {
             $this->error('Sistem kullanıcısı bulunamadı veya e-posta adresi yok.');

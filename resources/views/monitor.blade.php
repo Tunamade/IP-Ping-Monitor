@@ -30,7 +30,7 @@
                     <input type="text" id="newNameInput" class="form-control" placeholder="IP ismi girin" style="max-width: 250px;">
                     <button id="addIpBtn" class="btn btn-success">Ekle</button>
                     <button id="startMonitorBtn" class="btn btn-warning" style="white-space: nowrap;">Sürekli Ping Gönder</button>
-                    <button id="queuePingBtn" class="btn btn-primary" style="white-space: nowrap;">Ping Queue</button>
+                    <button id="queuePingBtn" class="btn btn-primary" style="white-space: nowrap;">Ping Gönder</button>
                 </div>
 
                 <button class="btn btn-outline-danger" id="toggleFailedIpsBtn" type="button" style="white-space: nowrap;">

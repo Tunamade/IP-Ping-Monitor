@@ -27,7 +27,7 @@
         body.dark-mode table.dataTable thead { background-color: #343a40 !important; color: white !important; }
         body.light-mode table.dataTable thead { background-color: #212529 !important; color: white !important; }
 
-        body.dark-mode table.dataTable tbody tr { background-color: transparent !important; } /* Dark mode satır arka planı kaldırıldı */
+        body.dark-mode table.dataTable tbody tr { background-color: transparent !important; }
         body.dark-mode table.dataTable { color: #e4e4e4 !important; }
         body.dark-mode .dataTables_info,
         body.dark-mode .dataTables_paginate,
@@ -40,7 +40,25 @@
             transition: right 0.2s ease;
         }
         .mode-switch.fullscreen { right: 230px; }
-        .mode-switch button { min-width: 120px; }
+
+        /* Buton stili */
+        .mode-switch button {
+            min-width: 120px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: all 0.2s ease-in-out;
+        }
+        .mode-switch button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+        }
+        .mode-switch button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .mode-switch .form-check-input { cursor: pointer; }
 
         #tableContainer.fullscreen {
             position: fixed; top:0; left:0; right:0; bottom:0;
@@ -51,7 +69,6 @@
         #tableContainer.fullscreen table.dataTable { height: 100% !important; }
         #tableContainer.fullscreen .dataTables_scrollBody { height: 100% !important; }
 
-        /* Flash animasyonları */
         @keyframes flashGreen {
             0% { background-color: #d4edda; }
             50% { background-color: #d4edda; opacity: 0.7; }
@@ -127,7 +144,6 @@
                     $('#ipTable tbody tr').css('height', '');
                 }
 
-                // Flash animasyonu kısmı
                 $('#ipTable tbody tr').each(function() {
                     let row = $(this);
                     let statusCell = row.find('td:eq(2)');
@@ -138,7 +154,7 @@
                             setTimeout(() => {
                                 cell.removeClass('flash-red');
                                 cell.css('background-color', '');
-                            }, 2000); // animasyon süresi ile aynı
+                            }, 2000);
                         } else {
                             cell.addClass('flash-green');
                             setTimeout(() => {
@@ -148,7 +164,6 @@
                         }
                     });
                 });
-
             }
         });
 
