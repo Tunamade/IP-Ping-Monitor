@@ -135,7 +135,7 @@
             scrollCollapse: true,
             paging: true,
             drawCallback: function(settings) {
-                if($('#tableContainer').hasClass('fullscreen')) {
+                if($('#tableContainer').hasClass('fullscreen')){
                     let containerHeight = $('#tableContainer').height() - $('#ipTable thead').outerHeight();
                     let rowCount = table.rows({page:'current'}).nodes().length;
                     let rowHeight = containerHeight / (rowCount || 1);
@@ -151,16 +151,10 @@
                         let cell = $(this);
                         if(statusCell.find('.badge.bg-danger').length) {
                             cell.addClass('flash-red');
-                            setTimeout(() => {
-                                cell.removeClass('flash-red');
-                                cell.css('background-color', '');
-                            }, 2000);
+                            setTimeout(() => { cell.removeClass('flash-red'); cell.css('background-color',''); }, 2000);
                         } else {
                             cell.addClass('flash-green');
-                            setTimeout(() => {
-                                cell.removeClass('flash-green');
-                                cell.css('background-color', '');
-                            }, 2000);
+                            setTimeout(() => { cell.removeClass('flash-green'); cell.css('background-color',''); }, 2000);
                         }
                     });
                 });
@@ -180,32 +174,35 @@
 
         $('#goHomeBtn').click(()=>window.location.href='{{ url("/") }}');
 
-        $('#fullscreenBtn').on('click', function(){
+        $('#fullscreenBtn').on('click', async function(){
             let container = $('#tableContainer');
-            container.toggleClass('fullscreen');
-            table.draw();
 
-            if(container.hasClass('fullscreen')) {
+            if (!document.fullscreenElement) {
+                try { await document.documentElement.requestFullscreen(); }
+                catch(err) { console.error("Fullscreen mode error:", err); }
+                container.addClass('fullscreen');
                 $('#goHomeBtn').hide();
                 $('.mode-switch').addClass('fullscreen');
                 this.textContent = 'Ekranı Kapat';
             } else {
+                try { await document.exitFullscreen(); }
+                catch(err) { console.error("Exit fullscreen error:", err); }
+                container.removeClass('fullscreen');
                 $('#goHomeBtn').show();
                 $('.mode-switch').removeClass('fullscreen');
                 this.textContent = 'Tam Ekran';
             }
+            table.draw();
         });
 
         $(document).on('keydown', function(e){
-            if(e.key==="Escape"){
-                let container = $('#tableContainer');
-                if(container.hasClass('fullscreen')){
-                    container.removeClass('fullscreen');
-                    $('#fullscreenBtn').text('Tam Ekran');
-                    $('#goHomeBtn').show();
-                    $('.mode-switch').removeClass('fullscreen');
-                    table.draw();
-                }
+            if(e.key === "Escape" && document.fullscreenElement){
+                document.exitFullscreen();
+                $('#tableContainer').removeClass('fullscreen');
+                $('#fullscreenBtn').text('Tam Ekran');
+                $('#goHomeBtn').show();
+                $('.mode-switch').removeClass('fullscreen');
+                table.draw();
             }
         });
 
