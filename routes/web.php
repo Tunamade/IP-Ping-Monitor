@@ -10,65 +10,60 @@ use App\Models\ClientPing;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\FailedPingNotification;
 use App\Jobs\TestQueueJob;
-
-Route::middleware('auth')->group(function () {
-    Route::get('/monitor/table', function () {
-        return view('monitor_table');
-    });
-});
-
-
-
-/*
-|--------------------------------------------------------------------------
-| Genel route’lar (Diğer kısımlar değişmedi)
-|--------------------------------------------------------------------------
-*/
-
-// Test queue job (örnek)
-Route::get('/test-queue', function () {
-    TestQueueJob::dispatch();
-    return 'Job kuyruğa eklendi!';
-});
+use App\Http\Controllers\ProfileController;
 
 // Auth middleware ile korunan grup
 Route::middleware('auth')->group(function () {
-    // Ping durumu sorgulama
-    Route::get('/ping/status', [MonitorController::class, 'pingStatus']);
 
-    // Monitor sayfası ve IP yönetimi
+    /*
+    |--------------------------------------------------------------------------
+    | Profil Yönetimi
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile'); // profil sayfası
+    Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::post('/profile/avatar', [App\Http\Controllers\ProfileController::class, 'updateAvatar'])->name('profile.avatar');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Monitor ve IP Yönetimi
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/monitor/table', function () {
+        return view('monitor_table');
+    });
+
+    Route::get('/ping/status', [MonitorController::class, 'pingStatus']);
     Route::get('/monitor', [MonitorController::class, 'index']);
     Route::get('/monitor/ips', [MonitorController::class, 'getIPs']);
     Route::post('/monitor/ips', [MonitorController::class, 'store']);
     Route::delete('/monitor/ips/{ip}', [MonitorController::class, 'destroy']);
-
-    // Başarısız IP'leri listele
     Route::get('/monitor/failed-ips', [MonitorController::class, 'getFailedIPs']);
-
-    // Ping işlemi (kuyruğa ata)
     Route::post('/ping/queue', [MonitorController::class, 'queuePing']);
-
-    // Sürekli ping işlemi (loop)
     Route::post('/monitor/loop', [MonitorController::class, 'monitorLoop']);
-
-
-
-    // Başarısız ping bildirim gönderme
     Route::get('/monitor/send-failed-notifications', [MonitorController::class, 'sendPendingNotifications']);
 
-    // Ana sayfa ve ping kontrolleri
+    /*
+    |--------------------------------------------------------------------------
+    | Ana Sayfa ve Ping İşlemleri
+    |--------------------------------------------------------------------------
+    */
     Route::get('/', [PingController::class, 'index'])->name('home');
     Route::get('/pings', [PingController::class, 'index']);
     Route::get('/pings/json', [PingController::class, 'json']);
     Route::post('/ping-multiple', [PingController::class, 'pingMultipleIPs']);
 
-    // Client ping
+    /*
+    |--------------------------------------------------------------------------
+    | Client Ping İşlemleri
+    |--------------------------------------------------------------------------
+    */
     Route::get('/client-pings', [ClientPingController::class, 'index']);
     Route::get('/client-pings/json', [ClientPingController::class, 'json']);
     Route::delete('/client-pings/{id}', [ClientPingController::class, 'destroy']);
 
-    // Client ping kayıt
-    Route::post('/client-ping', function(Request $request) {
+    Route::post('/client-ping', function (Request $request) {
         $validated = $request->validate([
             'ip' => 'required|string',
             'latency' => 'nullable|numeric',
@@ -89,10 +84,26 @@ Route::middleware('auth')->group(function () {
         return response()->json(['status' => 'ok']);
     });
 
-    // Bootstrap test sayfası
+    /*
+    |--------------------------------------------------------------------------
+    | Bootstrap Test Sayfası
+    |--------------------------------------------------------------------------
+    */
     Route::get('/bootstrap-test', function () {
         return view('bootstrap-test');
     });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Genel Route’lar (Auth Harici)
+|--------------------------------------------------------------------------
+*/
+
+// Test queue job (örnek)
+Route::get('/test-queue', function () {
+    TestQueueJob::dispatch();
+    return 'Job kuyruğa eklendi!';
 });
 
 /*
@@ -105,6 +116,3 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-
-

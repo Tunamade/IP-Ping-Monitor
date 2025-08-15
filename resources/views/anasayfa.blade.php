@@ -7,9 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @vite(['resources/js/app.js', 'resources/css/app.css'])
-
-    <!-- Bootstrap Icons CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
 
     <style>
         body { background-color: #f8f9fa; }
@@ -24,30 +22,33 @@
     </style>
 </head>
 <body>
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container-fluid">
         <a class="navbar-brand" href="{{ url('/') }}">IP Monitor</a>
         <div class="collapse navbar-collapse justify-content-end">
             <ul class="navbar-nav mb-2 mb-lg-0">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="{{ asset('storage/avatars/default-avatar.png') }}" alt="avatar" class="rounded-circle avatar-img">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="{{ Auth::user()->avatar
+                            ? asset('storage/avatars/' . Auth::user()->avatar)
+                            : asset('storage/avatars/default-avatar.png') }}"
+                             alt="avatar" class="rounded-circle avatar-img">
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end p-2" style="min-width: 200px;">
+                    <ul class="dropdown-menu dropdown-menu-end p-2" aria-labelledby="userDropdown" style="min-width: 220px;">
                         <li class="text-center mb-2"><strong>{{ Auth::user()->name }}</strong></li>
+                        <li><a class="dropdown-item text-center" href="{{ route('profile') }}"><i class="bi bi-person me-2"></i>Profil</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <a class="dropdown-item text-center text-danger" href="{{ route('logout') }}"
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                Çıkış
+                                <i class="bi bi-box-arrow-right me-2"></i>Çıkış
                             </a>
                         </li>
                     </ul>
                 </li>
             </ul>
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                @csrf
-            </form>
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
         </div>
     </div>
 </nav>
@@ -93,5 +94,15 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Çıkış onayı
+    function confirmLogout() {
+        if(confirm('Çıkış yapmak istediğinize emin misiniz?')) {
+            document.getElementById('logout-form').submit();
+        }
+    }
+</script>
+
 </body>
 </html>
