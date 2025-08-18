@@ -22,21 +22,16 @@ class PingIpJob implements ShouldQueue
 
     public function __construct(MonitorIp $ipEntry, User $user)
     {
-        // ID'yi saklıyoruz, böylece queue çalışırken model yeniden yüklenebilir
         $this->ipEntryId = $ipEntry->id;
-        $this->name = $ipEntry->name; // name direkt olarak saklanıyor
         $this->user = $user;
     }
 
     public function handle(): void
     {
-        // Modeli yeniden yükle (queue sırasında eksik alan sorununu önlemek için)
-        $this->ipEntry = MonitorIp::find($this->ipEntryId);
-        if (!$this->ipEntry) {
-            return; // kayıt bulunmazsa işlemi sonlandır
-        }
+        $ipEntry = MonitorIp::find($this->ipEntryId);
+        if (!$ipEntry) return;
 
-        $ip = $this->ipEntry->ip;
+        $ip = $ipEntry->ip;
 
         if (stripos(PHP_OS, 'WIN') !== false) {
             $pingOutput = shell_exec("ping -n 1 -w 1000 $ip");
@@ -56,24 +51,27 @@ class PingIpJob implements ShouldQueue
             $latency = (float) $matches[1];
         }
 
-        $this->ipEntry->latency = $latency;
-        $this->ipEntry->status = $success ? 'success' : 'fail';
+        $ipEntry->latency = $latency;
+        $ipEntry->status = $success ? 'success' : 'fail';
 
-        // Başarısızsa ve bildirilmemişse mail gönder
-        if (!$success && is_null($this->ipEntry->notified_at)) {
-            Mail::to($this->user->email)->send(
-                new FailedPingNotification($this->ipEntry->ip, $this->ipEntry->name ?? '-')
-            );
-            $this->ipEntry->notified_at = now();
+        // 🔹 Başarısız ve daha önce bildirilmemişse mail gönder (kullanıcı tercihi kontrolü)
+        if (!$success && is_null($ipEntry->notified_at)) {
+            if ($this->user->email_notifications) {
+                Mail::to($this->user->email)->send(
+                    new FailedPingNotification($ipEntry->ip, $ipEntry->name ?? '-')
+                );
+            }
+            $ipEntry->notified_at = now();
         }
 
-        // Başarılıysa notified_at sıfırla
-        if ($success && $this->ipEntry->notified_at !== null) {
-            $this->ipEntry->notified_at = null;
+        // Başarılı ise notified_at sıfırlanır
+        if ($success && $ipEntry->notified_at !== null) {
+            $ipEntry->notified_at = null;
         }
 
-        $this->ipEntry->save();
+        $ipEntry->save();
 
+        // Kuyruk sayacını güncelle
         $remaining = Cache::decrement('ping_jobs_remaining');
         if ($remaining <= 0) {
             Cache::forget('ping_jobs_running');

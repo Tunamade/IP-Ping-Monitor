@@ -7,7 +7,7 @@ use App\Models\MonitorIp;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Cache;  // Cache eklendi
+use Illuminate\Support\Facades\Cache;
 use App\Mail\FailedPingNotification;
 use App\Jobs\PingIpJob;
 
@@ -28,32 +28,30 @@ class MonitorController extends Controller
         }
 
         $ipAddresses = MonitorIp::all();
-
         $totalJobs = $ipAddresses->count();
 
         if ($totalJobs === 0) {
             return response()->json(['message' => 'İzlenecek IP adresi yok.']);
         }
 
-        // Flag ve sayaç cache'de tutuluyor
         Cache::put('ping_jobs_running', true, now()->addMinutes(5));
         Cache::put('ping_jobs_remaining', $totalJobs, now()->addMinutes(5));
 
         foreach ($ipAddresses as $ipAddress) {
-            PingIpJob::dispatch($ipAddress, $user);
+            PingIpJob::dispatch($ipAddress, $user); // Job içinde zaten email_notifications kontrolü var
         }
 
         return response()->json(['message' => "$totalJobs adet ping işlemi kuyruğa alındı."]);
     }
 
-    public function getIPs() // Tüm ipleri çeker
+    public function getIPs()
     {
         $ips = MonitorIp::all();
         $result = $ips->map(function($ip) {
             return [
                 'id' => $ip->id,
                 'ip' => $ip->ip,
-                'name' => $ip->name,  // burada name ekle
+                'name' => $ip->name,
                 'status' => $ip->status ?? 'N/A',
                 'latency' => $ip->latency,
                 'created_at' => $ip->created_at,
@@ -63,7 +61,7 @@ class MonitorController extends Controller
         return response()->json($result);
     }
 
-    public function getFailedIPs()  // başarısız olan ipleri çeker
+    public function getFailedIPs()
     {
         $failed = MonitorIp::where('status', 'fail')->get();
 
@@ -76,7 +74,7 @@ class MonitorController extends Controller
         }));
     }
 
-    public function store(Request $request)  // ekle butonu
+    public function store(Request $request)
     {
         $request->validate([
             'ip' => [
@@ -88,7 +86,7 @@ class MonitorController extends Controller
                     }
                 }
             ],
-            'name' => ['nullable', 'string', 'max:255'], // name alanı eklendi
+            'name' => ['nullable', 'string', 'max:255'],
         ]);
 
         $ip = MonitorIp::create([
@@ -99,7 +97,7 @@ class MonitorController extends Controller
         return response()->json($ip, 201);
     }
 
-    public function destroy($ip)  // sil butonu
+    public function destroy($ip)
     {
         $deleted = MonitorIp::where('ip', $ip)->delete();
 
@@ -110,7 +108,7 @@ class MonitorController extends Controller
         return response()->json(['message' => 'IP bulunamadı.'], 404);
     }
 
-    public function json() // en son eklenen en üstte olarak json olarak döndürür
+    public function json()
     {
         $monitorPings = MonitorIp::orderBy('id', 'desc')->get();
 
@@ -125,11 +123,9 @@ class MonitorController extends Controller
         })->values());
     }
 
-    // NOT: Eski ping() fonksiyonunu artık kullanmıyoruz, iş kuyruğunda çalışacak!
-
     public function pingStatus()
     {
-        $running = \Cache::get('ping_jobs_running', false);
+        $running = Cache::get('ping_jobs_running', false);
         return response()->json(['running' => $running]);
     }
 
@@ -139,17 +135,22 @@ class MonitorController extends Controller
         if (!$user || !$user->email) {
             return response()->json(['message' => 'Oturumda kullanıcı bulunamadı veya e-posta adresi yok.'], 403);
         }
-        // Ping başarısız olup henüz bildirilmemiş IP'leri alır
+
+        // Ping başarısız olup henüz bildirilmemiş IP'leri al
         $failedIPs = MonitorIp::where('status', 'fail')
             ->whereNull('notified_at')
             ->get();
 
         foreach ($failedIPs as $ipEntry) {
-            Mail::to($user->email)->send(new FailedPingNotification($ipEntry->ip));
+            // 🔹 Kullanıcı email_notifications kapalıysa mail gönderme
+            if ($user->email_notifications) {
+                Mail::to($user->email)->send(new FailedPingNotification($ipEntry->ip, $ipEntry->name ?? '-'));
+            }
+
             $ipEntry->notified_at = now();
             $ipEntry->save();
         }
 
-        return response()->json(['message' => count($failedIPs).' adet bildirim gönderildi.']);
+        return response()->json(['message' => count($failedIPs).' adet bildirim işlendi.']);
     }
 }

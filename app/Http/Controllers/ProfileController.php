@@ -9,13 +9,11 @@ use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
-    // Profil sayfasını göster
     public function index()
     {
         return view('profile');
     }
 
-    // Avatar güncelleme
     public function updateAvatar(Request $request)
     {
         $user = Auth::user();
@@ -24,12 +22,11 @@ class ProfileController extends Controller
             'avatar' => 'required|file|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Eski avatarı sil
         if ($user->avatar && Storage::disk('public')->exists('avatars/' . $user->avatar)) {
             Storage::disk('public')->delete('avatars/' . $user->avatar);
         }
 
-        $avatarName = time() . '.png'; // PNG olarak kaydediyoruz
+        $avatarName = time() . '.png';
         Storage::disk('public')->put('avatars/' . $avatarName, file_get_contents($request->file('avatar')));
 
         $user->avatar = $avatarName;
@@ -38,7 +35,6 @@ class ProfileController extends Controller
         return response()->json(['status' => 'ok', 'avatar' => $avatarName]);
     }
 
-    // Profil bilgilerini güncelle
     public function update(Request $request)
     {
         $user = Auth::user();
@@ -58,7 +54,6 @@ class ProfileController extends Controller
         return redirect()->back()->with('success', 'Profil başarıyla güncellendi.');
     }
 
-    // Şifre değiştir
     public function updatePassword(Request $request)
     {
         $user = Auth::user();
@@ -76,5 +71,15 @@ class ProfileController extends Controller
         $user->save();
 
         return redirect()->back()->with('success', 'Şifre başarıyla değiştirildi.');
+    }
+
+    // 🔹 Bildirim tercihlerini güncelle
+    public function updateNotifications(Request $request)
+    {
+        $user = Auth::user();
+        $user->email_notifications = $request->has('email_notifications');
+        $user->save();
+
+        return redirect()->back()->with('success', 'Bildirim tercihleri güncellendi.');
     }
 }
