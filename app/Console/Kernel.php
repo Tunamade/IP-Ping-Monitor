@@ -8,7 +8,7 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 class Kernel extends ConsoleKernel
 {
     protected $commands = [
-        // Komutlarını buraya yaz
+        //php artisan schedule:work         php artisan schedule:run   bu iki kod ile ping:ips i çalıştırıyoruz
         \App\Console\Commands\PingIpsCommand::class,
     ];
 

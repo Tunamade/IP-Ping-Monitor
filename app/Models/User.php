@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; // Sanctum için eklendi
+use App\Models\Ping;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable; // HasApiTokens eklendi
 
     /**
      * The attributes that are mass assignable.
@@ -42,6 +44,14 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'email_notifications' => 'boolean', // checkbox kontrolü için
+        'email_notifications' => 'boolean',
     ];
+
+    /**
+     * Kullanıcının ping kayıtları
+     */
+    public function pings()
+    {
+        return $this->hasMany(Ping::class);
+    }
 }
