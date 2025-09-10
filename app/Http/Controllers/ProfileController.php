@@ -9,11 +9,17 @@ use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
+    /**
+     * Profil sayfasını görüntüle (Web için).
+     */
     public function index()
     {
         return view('profile');
     }
 
+    /**
+     * Kullanıcı avatarını güncelle.
+     */
     public function updateAvatar(Request $request)
     {
         $user = Auth::user();
@@ -32,9 +38,16 @@ class ProfileController extends Controller
         $user->avatar = $avatarName;
         $user->save();
 
-        return response()->json(['status' => 'ok', 'avatar' => $avatarName]);
+        if ($request->expectsJson()) {
+            return response()->json(['status' => 'ok', 'avatar' => $avatarName], 200);
+        }
+
+        return redirect()->back()->with('success', 'Avatar başarıyla güncellendi.');
     }
 
+    /**
+     * Kullanıcı bilgilerini güncelle.
+     */
     public function update(Request $request)
     {
         $user = Auth::user();
@@ -51,9 +64,16 @@ class ProfileController extends Controller
             'about' => $request->about,
         ]);
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Profil başarıyla güncellendi.'], 200);
+        }
+
         return redirect()->back()->with('success', 'Profil başarıyla güncellendi.');
     }
 
+    /**
+     * Kullanıcı şifresini güncelle.
+     */
     public function updatePassword(Request $request)
     {
         $user = Auth::user();
@@ -64,21 +84,36 @@ class ProfileController extends Controller
         ]);
 
         if (!Hash::check($request->current_password, $user->password)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Mevcut şifre yanlış.'], 400);
+            }
             return redirect()->back()->withErrors(['current_password' => 'Mevcut şifre yanlış.']);
         }
 
         $user->password = Hash::make($request->password);
         $user->save();
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Şifre başarıyla değiştirildi.'], 200);
+        }
+
         return redirect()->back()->with('success', 'Şifre başarıyla değiştirildi.');
     }
 
-    // 🔹 Bildirim tercihlerini güncelle
+    /**
+     * Bildirim tercihlerini güncelle.
+     */
     public function updateNotifications(Request $request)
     {
         $user = Auth::user();
-        $user->email_notifications = $request->has('email_notifications');
+
+        // Değişiklik: has() yerine input() kullanılarak değer doğru bir şekilde alınıyor
+        $user->email_notifications = $request->input('email_notifications');
         $user->save();
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Bildirim tercihleri güncellendi.'], 200);
+        }
 
         return redirect()->back()->with('success', 'Bildirim tercihleri güncellendi.');
     }
